@@ -261,6 +261,12 @@
       position: absolute;
       inset: 0;
       transform-style: preserve-3d;
+      transition: opacity 220ms ease;
+    }
+
+    .word-layer.text-hidden {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .word {
@@ -413,6 +419,60 @@
       box-shadow: inset 0 0 0 1px rgba(255, 245, 224, 0.24), 0 0 24px rgba(239, 157, 63, 0.18);
     }
 
+    .layer-filter {
+      top: 86px;
+      right: 28px;
+      display: flex;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid rgba(255, 245, 224, 0.12);
+      border-radius: 999px;
+      background: rgba(5, 8, 17, 0.5);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+      pointer-events: auto;
+    }
+
+    .filter-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: rgba(255, 245, 224, 0.48);
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 0;
+      transition:
+        background 180ms ease,
+        color 180ms ease,
+        opacity 180ms ease,
+        box-shadow 180ms ease;
+    }
+
+    .filter-btn:hover {
+      color: rgba(255, 245, 224, 0.86);
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .filter-btn.active[data-layer="anchor"] {
+      color: #fff5d0;
+      background: rgba(255, 210, 78, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(255, 230, 132, 0.24), 0 0 16px rgba(255, 183, 55, 0.13);
+    }
+
+    .filter-btn.active[data-layer="cube"] {
+      color: #eaf6ff;
+      background: rgba(127, 208, 255, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(127, 208, 255, 0.24), 0 0 16px rgba(127, 208, 255, 0.13);
+    }
+
+    .filter-btn.active[data-layer="sphere"] {
+      color: #fde9c4;
+      background: rgba(217, 179, 90, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(217, 179, 90, 0.24), 0 0 16px rgba(217, 179, 90, 0.13);
+    }
+
     .legend {
       left: 28px;
       bottom: 28px;
@@ -547,16 +607,28 @@
         font-size: 12px;
       }
 
+      .layer-filter {
+        top: auto;
+        right: 50%;
+        bottom: 16px;
+        transform: translateX(50%);
+      }
+
+      .filter-btn {
+        padding: 7px 9px;
+        font-size: 11px;
+      }
+
       .legend {
         left: 18px;
-        bottom: 16px;
+        bottom: 108px;
         gap: 6px;
         font-size: 11px;
       }
 
       .hint {
         right: 18px;
-        bottom: 108px;
+        bottom: 156px;
         max-width: 150px;
         text-align: right;
         font-size: 11px;
@@ -598,6 +670,12 @@
     <button class="mode-btn" type="button" data-mode="all" aria-pressed="false">All</button>
   </nav>
 
+  <nav class="chrome layer-filter" aria-label="Text layers">
+    <button class="filter-btn active" type="button" data-layer="anchor" aria-pressed="true">Core Text</button>
+    <button class="filter-btn active" type="button" data-layer="cube" aria-pressed="true">Box Text</button>
+    <button class="filter-btn active" type="button" data-layer="sphere" aria-pressed="true">Sphere Text</button>
+  </nav>
+
   <section class="chrome legend" aria-label="Legend">
     <div class="legend-row"><span class="swatch core"></span><span>Core — my foundation</span></div>
     <div class="legend-row"><span class="swatch cube"></span><span>Box — must-manage responsibilities</span></div>
@@ -627,6 +705,12 @@
     const detailCopy = document.getElementById("detailCopy");
     const closePanel = document.getElementById("closePanel");
     const modeButtons = [...document.querySelectorAll(".mode-btn")];
+    const filterButtons = [...document.querySelectorAll(".filter-btn")];
+    const textLayers = {
+      anchor: anchorLayer,
+      cube: cubeLayer,
+      sphere: sphereLayer
+    };
 
     const CUBE_SIZE = 340;
     const CUBE_HALF = CUBE_SIZE / 2;
@@ -643,6 +727,11 @@
       lastX: 0,
       lastY: 0,
       selected: null,
+      visibleText: {
+        anchor: true,
+        cube: true,
+        sphere: true
+      },
       items: [],
       raf: 0
     };
@@ -783,6 +872,7 @@
       el.type = "button";
       el.className = `word ${className}`;
       el.textContent = item.name;
+      el.dataset.layer = item.layer;
       el.setAttribute("aria-label", `${item.name}: ${item.description}`);
       el.addEventListener("pointerdown", event => event.stopPropagation());
       el.addEventListener("click", event => {
@@ -1027,6 +1117,27 @@
       });
     }
 
+    function applyTextFilters() {
+      Object.entries(textLayers).forEach(([layer, element]) => {
+        const hidden = !state.visibleText[layer];
+        element.classList.toggle("text-hidden", hidden);
+        element.inert = hidden;
+        element.setAttribute("aria-hidden", String(hidden));
+      });
+
+      filterButtons.forEach(button => {
+        const visible = state.visibleText[button.dataset.layer];
+        button.classList.toggle("active", visible);
+        button.setAttribute("aria-pressed", String(visible));
+      });
+    }
+
+    function toggleTextLayer(layer) {
+      state.visibleText[layer] = !state.visibleText[layer];
+      if (state.selected?.dataset.layer === layer && !state.visibleText[layer]) hideDetails();
+      applyTextFilters();
+    }
+
     function setMode(mode) {
       if (state.mode === mode) return;
       state.mode = mode;
@@ -1051,6 +1162,7 @@
     }
 
     function showDetails(item, el) {
+      if (!state.visibleText[item.layer]) return;
       if (state.selected) state.selected.classList.remove("active");
       state.selected = el;
       el.classList.add("active");
@@ -1225,6 +1337,11 @@
       modeButtons.forEach(button => {
         button.addEventListener("click", () => setMode(button.dataset.mode));
       });
+
+      filterButtons.forEach(button => {
+        button.addEventListener("click", () => toggleTextLayer(button.dataset.layer));
+      });
+      applyTextFilters();
 
       app.addEventListener("pointerdown", onPointerDown);
       app.addEventListener("pointermove", onPointerMove);
