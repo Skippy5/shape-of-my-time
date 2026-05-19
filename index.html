@@ -650,44 +650,41 @@
     const anchors = [
       ["Family", "The people I belong to and who belong to me."],
       ["God", "The faith and conviction that grounds the rest."],
-      ["Community", "The wider circle — neighbors, friends, the people I'm called to show up for."],
-      ["Kids", "Showing up — present, patient, intentional. The standard father work."],
-      ["Marriage", "The first relationship. Date nights, hard conversations, the daily small things."]
+      ["Kids", "Showing up — present, patient, intentional."],
+      ["Marriage", "The first relationship. Date nights, hard conversations, the daily small things."],
+      ["Self-Improvement", "Working to become a better person"]
     ].map(([name, description]) => ({ name, description, layer: "anchor" }));
 
     const professionalCube = [
-      ["Service Governance", "The anchor function — process, policy, and operational discipline."],
-      ["Employee Experience", "Inherited EX scope; six ICs from the EX-origin team."],
-      ["Data & Analytics", "Sr Manager D&A + Staff DE + 2 Sr DEs — the data spine of the org."],
-      ["DEX", "Digital Employee Experience — Sr Data Scientist, direct report."],
-      ["Compliance", "Policy adherence and audit readiness across the function."],
+      ["Service Governance", "Where consistency, accountability, and quality get built in"],
+      ["Employee Experience", "Closing the loop between what employees need and what we deliver"],
+      ["Data & Analytics", "Fragmented data builds fragmented organizations"],
+      ["DEX", "Improving our customers relationship with technology"],
+      ["Compliance", "Policy adherence and audit readiness"],
       ["Process Mgmt", "End-to-end process ownership and continuous improvement."],
-      ["FinGov", "Financial governance — tight loop with the data function."],
-      ["Coaching", "Span of control — today 13, target ~5–6 after redesign."],
-      ["Org Design", "Active redesign: Option 1, Option 2A (stay), Option 2B (Architecture)."],
+      ["Coaching", "The work I'm proudest of isn't on a slide; it's in the careers I helped grow."],
       ["People Leadership", "Coaching, performance, and career growth across the team."],
-      ["Career Development", "IC → Leader moves; promotions filled from internal bench."],
       ["Operations", "The day-to-day machinery that keeps the function running."],
       ["Performance", "Outcomes, throughput, and quality across both sub-functions."],
-      ["Governance Strategy", "Where governance is going over the next 12–18 months."],
-      ["1:1s w/ Staff", "Weekly check-ins with direct reports — the rhythm that keeps the team aligned."]
+      ["Team Strategy", "Where governance is going over the next 12–18 months."],
+      ["1:1s w/ Staff", "If I'm not having 1:1s, I'm not leading; I'm just assigning work."]
     ].map(([name, description]) => ({ name, description, layer: "cube" }));
 
     const professionalSphere = [
-      ["Cross-Org Coordination", "Threading the needle across Architecture, Platform, and beyond."],
-      ["Executive Briefings", "Up-the-chain updates and reviews."],
-      ["Strategic Planning", "Longer-horizon thinking outside quarterly delivery."],
-      ["Mentorship", "1:1s, sponsorship, and coaching beyond direct reports."],
+      ["Cross-Org Coordination", "Threading the needle across the Digital Workplace"],
+      ["Executive Briefings", "Up-the-chain updates and reviews"],
+      ["Strategic Planning", "Longer-horizon thinking across teams"],
+      ["Mentorship", "1:1s, sponsorship, and coaching beyond direct reports"],
       ["Hiring", "Interviews, panels, talent screens."],
       ["Stakeholder Updates", "Steady drumbeat of comms outward."],
       ["Innovation", "Experiments and pilots not on the official roadmap."],
       ["Industry Trends", "Keeping current — analyst reports, peer benchmarks."],
-      ["Networking", "Peer Sr Directors, cross-company connections."],
-      ["Ad-hoc Asks", "The unscheduled — questions, favors, drop-ins."],
+      ["Networking", "Peer cross-company connections."],
+      ["Ad-hoc Asks", "The unscheduled questions, favors, drop-ins."],
       ["Reviews", "Performance, project, design — the review tax."],
-      ["1:1s w/ Peers", "Lateral relationships that make the org function."],
+      ["1:1s w/ Peers", "You can't partner with someone you only see in a status meeting."],
       ["Training", "Personal learning and team uplift."],
-      ["Collaboration (Email, Teams)", "The constant background hum of messaging and shared workspaces."],
+      ["Collaboration (Email, Teams)", "The constant background hum."],
       ["Recognition", "Catching people doing it right and saying so."]
     ].map(([name, description]) => ({ name, description, layer: "sphere" }));
 
@@ -699,20 +696,23 @@
       ["Learning", "Books, courses, podcasts — the deliberate input that keeps the mind sharp."],
       ["Friendships", "The handful of people I can call at 11 pm. Worth the effort."],
       ["Mental Wellness", "Rest, perspective, decompression. Not optional."],
-      ["Time with Self", "Solitude on purpose — thinking, planning, recalibrating."]
+      ["Time with Self", "Solitude on purpose — thinking, planning, recalibrating."],
+      ["Community", "Investing in the wider circle, no one builds a life alone."]
     ].map(([name, description]) => ({ name, description, layer: "cube" }));
 
     const personalSphere = [
-      ["Video Games", "Unwinding, escape, the occasional co-op session."],
-      ["Vibe Coding", "Building little things for the joy of building."],
-      ["Hiking", "Trails, fresh air, the kind of quiet you can't get anywhere else."],
-      ["Building", "Making things with my hands — wood, materials, projects."],
-      ["Home Improvement", "The endless list. Slow, satisfying work on the place I live."],
-      ["Reading", "Fiction and non-fiction. Long-form thinking."],
-      ["Cooking", "New recipes, slow weekends, feeding the people I love."],
-      ["Travel", "Family trips, occasional solo wandering."],
-      ["Movies & Shows", "The shared-couch hours."],
-      ["Board Games", "Game nights with family and friends — strategy, laughs, time together."]
+      ["Video Games", "Saving the world, one respawn at a time."],
+      ["Vibe Coding", "Where the only deadline is \"until it works.\""],
+      ["Hiking", "Out of office. Into the trees."],
+      ["Building", "If I can picture it, I can probably overbuild it."],
+      ["Home Improvement", "Every weekend is a project; every project is an education."],
+      ["Reading", "Borrowing other people's brains for a few hours."],
+      ["Cooking", "Stress relief that ends in dinner."],
+      ["Travel", "Collecting places, not things."],
+      ["Movies & Shows", "Press play. Tune out."],
+      ["Board Games", "Friendly competition, occasional table-flipping."],
+      ["US Politics", "Paying attention because the decisions don't pause for the rest of us"],
+      ["Geo-Politics", "Understanding the world, not just the headlines"]
     ].map(([name, description]) => ({ name, description, layer: "sphere" }));
 
     const content = {
