@@ -1118,7 +1118,7 @@
           x: base.x + Math.sin(t * 0.6 + seed) * 0.9,
           y: base.y + Math.cos(t * 0.52 + seed) * 0.8,
           z: base.z + Math.sin(t * 0.48 + seed) * 0.7,
-          scale: zoomTextScale(0.7, 1.05, 0.5, 2.1)
+          scale: zoomTextScale(0.7, 1.05, 0.5, 2.65)
         };
       }
 
@@ -1212,7 +1212,7 @@
     function onWheel(event) {
       event.preventDefault();
       const next = state.zoom - event.deltaY * 0.0011;
-      state.zoom = clamp(next, 0.58, 2.25);
+      state.zoom = clamp(next, 0.58, 3.35);
     }
 
     function init() {
