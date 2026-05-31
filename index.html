@@ -504,6 +504,47 @@
       box-shadow: inset 0 0 0 1px rgba(217, 179, 90, 0.24), 0 0 16px rgba(217, 179, 90, 0.13);
     }
 
+    .zoom-control {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 7px;
+      border: 1px solid rgba(255, 245, 224, 0.12);
+      border-radius: 999px;
+      background: rgba(5, 8, 17, 0.62);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.24);
+      pointer-events: auto;
+    }
+
+    .zoom-btn {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      color: rgba(255, 245, 224, 0.88);
+      background: rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .zoom-btn:active {
+      transform: translateY(1px);
+    }
+
+    .zoom-label {
+      color: rgba(255, 245, 224, 0.68);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .zoom-range {
+      width: 128px;
+      accent-color: var(--cyan);
+    }
+
     .single-mode .mode-toggle {
       display: none;
     }
@@ -723,6 +764,20 @@
         top: auto;
       }
 
+      .zoom-control {
+        display: flex;
+        left: 50%;
+        bottom: calc(136px + var(--safe-bottom));
+        width: min(286px, calc(100vw - 72px));
+        transform: translateX(-50%);
+        justify-content: center;
+      }
+
+      .zoom-range {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
       .filter-btn {
         flex: 1 1 0;
         padding: 7px 9px;
@@ -730,13 +785,7 @@
       }
 
       .legend {
-        left: 12px;
-        right: 12px;
-        bottom: calc(140px + var(--safe-bottom));
-        gap: 6px;
-        grid-template-columns: 1fr;
-        font-size: 10px;
-        opacity: 0.84;
+        display: none;
       }
 
       .hint {
@@ -821,6 +870,13 @@
     <button class="filter-btn active" type="button" data-layer="sphere" aria-pressed="true">Sphere Text</button>
   </nav>
 
+  <div class="chrome zoom-control" aria-label="Zoom controls">
+    <button id="zoomOut" class="zoom-btn" type="button" aria-label="Zoom out">&minus;</button>
+    <label class="zoom-label" for="zoomRange">Zoom</label>
+    <input id="zoomRange" class="zoom-range" type="range" min="0.38" max="1.35" step="0.01" value="0.46" aria-label="Zoom level">
+    <button id="zoomIn" class="zoom-btn" type="button" aria-label="Zoom in">+</button>
+  </div>
+
   <section class="chrome legend" aria-label="Legend">
     <div class="legend-row"><span class="swatch core"></span><span>Core — my foundation</span></div>
     <div class="legend-row"><span class="swatch cube"></span><span>Box — must-manage responsibilities</span></div>
@@ -849,6 +905,9 @@
     const detailTitle = document.getElementById("detailTitle");
     const detailCopy = document.getElementById("detailCopy");
     const closePanel = document.getElementById("closePanel");
+    const zoomRange = document.getElementById("zoomRange");
+    const zoomOut = document.getElementById("zoomOut");
+    const zoomIn = document.getElementById("zoomIn");
     const modeButtons = [...document.querySelectorAll(".mode-btn")];
     const filterButtons = [...document.querySelectorAll(".filter-btn")];
     const textLayers = {
@@ -1417,6 +1476,28 @@
       stars.style.setProperty("--star-y", `${state.rotationX * 0.28}px`);
     }
 
+    function zoomLimits() {
+      return state.mobile
+        ? { min: 0.38, max: 1.35, step: 0.08 }
+        : { min: 0.58, max: 3.35, step: 0.14 };
+    }
+
+    function syncZoomControls() {
+      const limits = zoomLimits();
+      zoomRange.min = String(limits.min);
+      zoomRange.max = String(limits.max);
+      zoomRange.value = String(state.zoom);
+      zoomRange.setAttribute("aria-valuetext", `${Math.round(state.zoom * 100)} percent`);
+    }
+
+    function setZoom(value) {
+      const limits = zoomLimits();
+      state.zoom = clamp(Number(value), limits.min, limits.max);
+      syncZoomControls();
+      state.needsRender = true;
+      updateScene();
+    }
+
     function zoomTextScale(base, sensitivity, min, max) {
       return clamp(base + (state.zoom - 0.92) * sensitivity, min, max);
     }
@@ -1560,8 +1641,7 @@
     function onWheel(event) {
       event.preventDefault();
       const next = state.zoom - event.deltaY * 0.0011;
-      state.zoom = clamp(next, state.mobile ? 0.38 : 0.58, state.mobile ? 1.35 : 3.35);
-      state.needsRender = true;
+      setZoom(next);
     }
 
     function syncViewportState() {
@@ -1575,6 +1655,7 @@
         if (state.mobile) state.visibleText.sphere = false;
         applyTextFilters();
       }
+      syncZoomControls();
       state.needsRender = true;
     }
 
@@ -1594,12 +1675,16 @@
         button.addEventListener("click", () => toggleTextLayer(button.dataset.layer));
       });
       applyTextFilters();
+      syncZoomControls();
 
       app.addEventListener("pointerdown", onPointerDown);
       app.addEventListener("pointermove", onPointerMove);
       app.addEventListener("pointerup", onPointerUp);
       app.addEventListener("pointercancel", onPointerUp);
       app.addEventListener("wheel", onWheel, { passive: false });
+      zoomRange.addEventListener("input", event => setZoom(event.target.value));
+      zoomOut.addEventListener("click", () => setZoom(state.zoom - zoomLimits().step));
+      zoomIn.addEventListener("click", () => setZoom(state.zoom + zoomLimits().step));
       app.addEventListener("click", event => {
         if (!event.target.closest(".word, .chrome, .detail-panel")) hideDetails();
       });
