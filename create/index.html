@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Your Shape of Time</title>
+  <style>
+    :root {
+      --bg: #090d1c;
+      --panel: rgba(14, 20, 38, 0.82);
+      --edge: rgba(255, 245, 224, 0.14);
+      --cream: #fff5e0;
+      --muted: rgba(255, 245, 224, 0.68);
+      --cyan: #7fd0ff;
+      --gold: #d9b35a;
+      --amber: #ef9d3f;
+      --danger: #ff8a8a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(127, 208, 255, 0.18), transparent 26%),
+        radial-gradient(circle at 86% 12%, rgba(239, 157, 63, 0.15), transparent 28%),
+        linear-gradient(180deg, #11172b, #070a13 58%, #05070d);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 50px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .lede {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .back {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 10px 14px;
+      border: 1px solid var(--edge);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(16px);
+    }
+
+    .form-panel {
+      padding: 18px;
+    }
+
+    .share-panel {
+      position: sticky;
+      top: 18px;
+      padding: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    label,
+    legend {
+      color: rgba(255, 245, 224, 0.86);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(255, 245, 224, 0.16);
+      border-radius: 8px;
+      background: rgba(5, 8, 16, 0.7);
+      color: var(--cream);
+      font: inherit;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(127, 208, 255, 0.64);
+      box-shadow: 0 0 0 3px rgba(127, 208, 255, 0.12);
+    }
+
+    fieldset {
+      min-width: 0;
+      margin: 20px 0 0;
+      padding: 16px;
+      border: 1px solid rgba(255, 245, 224, 0.12);
+      border-radius: 8px;
+    }
+
+    legend {
+      padding: 0 8px;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: minmax(130px, 0.7fr) minmax(160px, 1fr) 36px;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .item button,
+    .add,
+    .primary,
+    .secondary {
+      min-height: 38px;
+      border: 0;
+      border-radius: 999px;
+      color: var(--cream);
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .item button {
+      width: 36px;
+      border-radius: 50%;
+      color: rgba(255, 245, 224, 0.72);
+    }
+
+    .add {
+      margin-top: 12px;
+      padding: 9px 14px;
+      color: #eaf6ff;
+      background: rgba(127, 208, 255, 0.14);
+    }
+
+    .primary {
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px 15px;
+      background: linear-gradient(90deg, rgba(127, 208, 255, 0.28), rgba(217, 179, 90, 0.24));
+      box-shadow: inset 0 0 0 1px rgba(255, 245, 224, 0.16);
+    }
+
+    .secondary {
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px 15px;
+      color: rgba(255, 245, 224, 0.86);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .note {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .warning {
+      margin: 14px 0 0;
+      color: rgba(255, 210, 160, 0.86);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .error {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--danger);
+      font-size: 13px;
+    }
+
+    .output {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .output.open {
+      display: block;
+    }
+
+    .output textarea {
+      min-height: 120px;
+      font-size: 12px;
+    }
+
+    .preview {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 245, 224, 0.12);
+    }
+
+    .preview h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .preview-group {
+      margin-top: 12px;
+    }
+
+    .preview-group h3 {
+      margin: 0 0 8px;
+      color: rgba(255, 245, 224, 0.78);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      max-width: 100%;
+      border: 1px solid rgba(255, 245, 224, 0.13);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: rgba(255, 245, 224, 0.84);
+      background: rgba(255, 255, 255, 0.055);
+      font-size: 12px;
+    }
+
+    .chip.core {
+      border-color: rgba(239, 157, 63, 0.28);
+    }
+
+    .chip.cube {
+      border-color: rgba(127, 208, 255, 0.32);
+    }
+
+    .chip.sphere {
+      border-color: rgba(217, 179, 90, 0.34);
+    }
+
+    @media (max-width: 840px) {
+      .page {
+        width: min(calc(100vw - 24px), 680px);
+        padding-top: 18px;
+      }
+
+      header,
+      .grid {
+        display: block;
+      }
+
+      .back {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 14px;
+      }
+
+      .share-panel {
+        position: static;
+        margin-top: 18px;
+      }
+
+      .item {
+        grid-template-columns: 1fr 36px;
+      }
+
+      .item textarea {
+        grid-column: 1 / -1;
+        min-height: 74px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <h1>Create Your Shape</h1>
+        <p class="lede">Add the foundations, responsibilities, and growth areas that shape your time. The share link stores your data in the URL hash, so GitHub Pages never receives it.</p>
+      </div>
+      <a class="back" href="../">View Skip's shape</a>
+    </header>
+
+    <div class="grid">
+      <form id="shapeForm" class="panel form-panel">
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" maxlength="70" value="The Shape of My Time">
+        </div>
+
+        <div class="field">
+          <label for="intro">Intro</label>
+          <textarea id="intro" maxlength="420">A personal map of the commitments, responsibilities, and pursuits that shape my time.</textarea>
+        </div>
+
+        <fieldset data-layer="anchors">
+          <legend>Core foundations</legend>
+          <div class="item-list" id="anchorsList"></div>
+          <button class="add" type="button" data-add="anchors">Add Core</button>
+        </fieldset>
+
+        <fieldset data-layer="cube">
+          <legend>Box responsibilities</legend>
+          <div class="item-list" id="cubeList"></div>
+          <button class="add" type="button" data-add="cube">Add Box</button>
+        </fieldset>
+
+        <fieldset data-layer="sphere">
+          <legend>Sphere growth</legend>
+          <div class="item-list" id="sphereList"></div>
+          <button class="add" type="button" data-add="sphere">Add Sphere</button>
+        </fieldset>
+      </form>
+
+      <aside class="panel share-panel">
+        <p class="note">Create a shareable link, open it to preview, then use the short-link button if you want a cleaner URL for texting.</p>
+        <button id="generate" class="primary" type="button">Generate Share Link</button>
+        <button id="copy" class="secondary" type="button">Copy Link</button>
+        <button id="shorten" class="secondary" type="button">Open TinyURL</button>
+        <p id="error" class="error" role="status"></p>
+
+        <div id="output" class="output">
+          <label for="shareUrl">Share URL</label>
+          <textarea id="shareUrl" readonly></textarea>
+          <a id="previewLink" class="secondary" href="../" target="_blank" rel="noopener">Open Preview</a>
+        </div>
+
+        <p class="warning">Privacy note: anyone with the link can read the data. Do not put secrets, private employer data, or anything you would not want forwarded in here. Yes, I know, adult supervision is tedious.</p>
+
+        <section class="preview" aria-label="Preview">
+          <h2>Preview</h2>
+          <div class="preview-group">
+            <h3>Core</h3>
+            <div id="previewAnchors" class="chips"></div>
+          </div>
+          <div class="preview-group">
+            <h3>Box</h3>
+            <div id="previewCube" class="chips"></div>
+          </div>
+          <div class="preview-group">
+            <h3>Sphere</h3>
+            <div id="previewSphere" class="chips"></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const defaults = {
+      anchors: [
+        { name: "Family", description: "The people I belong to and who belong to me." },
+        { name: "Faith", description: "The conviction that grounds the rest." },
+        { name: "Health", description: "The chassis that carries everything else." }
+      ],
+      cube: [
+        { name: "Work", description: "The responsibilities I need to manage well." },
+        { name: "Home", description: "The routines and logistics that keep life moving." },
+        { name: "Finances", description: "The discipline that buys options." }
+      ],
+      sphere: [
+        { name: "Learning", description: "The input that keeps the mind sharp." },
+        { name: "Friendships", description: "Relationships worth the effort." },
+        { name: "Creative Projects", description: "Making things because it is good to make things." }
+      ]
+    };
+
+    const lists = {
+      anchors: document.getElementById("anchorsList"),
+      cube: document.getElementById("cubeList"),
+      sphere: document.getElementById("sphereList")
+    };
+    const preview = {
+      anchors: document.getElementById("previewAnchors"),
+      cube: document.getElementById("previewCube"),
+      sphere: document.getElementById("previewSphere")
+    };
+    const titleInput = document.getElementById("title");
+    const introInput = document.getElementById("intro");
+    const errorEl = document.getElementById("error");
+    const output = document.getElementById("output");
+    const shareUrl = document.getElementById("shareUrl");
+    const previewLink = document.getElementById("previewLink");
+
+    function addItem(layer, item = { name: "", description: "" }) {
+      const row = document.createElement("div");
+      row.className = "item";
+      row.dataset.layer = layer;
+
+      const name = document.createElement("input");
+      name.maxLength = 42;
+      name.placeholder = "Name";
+      name.value = item.name || "";
+      name.dataset.field = "name";
+
+      const desc = document.createElement("textarea");
+      desc.maxLength = 240;
+      desc.placeholder = "Short description";
+      desc.value = item.description || "";
+      desc.dataset.field = "description";
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "x";
+      remove.setAttribute("aria-label", "Remove item");
+      remove.addEventListener("click", () => {
+        row.remove();
+        renderPreview();
+      });
+
+      row.append(name, desc, remove);
+      row.addEventListener("input", renderPreview);
+      lists[layer].appendChild(row);
+    }
+
+    function collectLayer(layer) {
+      return [...lists[layer].querySelectorAll(".item")]
+        .map(row => ({
+          name: row.querySelector('[data-field="name"]').value.trim().slice(0, 42),
+          description: row.querySelector('[data-field="description"]').value.trim().slice(0, 240)
+        }))
+        .filter(item => item.name);
+    }
+
+    function collectShape() {
+      return {
+        v: 1,
+        title: titleInput.value.trim().slice(0, 70) || "My Shape of Time",
+        intro: introInput.value.trim().slice(0, 420),
+        anchors: collectLayer("anchors").slice(0, 8),
+        cube: collectLayer("cube").slice(0, 18),
+        sphere: collectLayer("sphere").slice(0, 18)
+      };
+    }
+
+    function validate(shape) {
+      if (!shape.anchors.length) return "Add at least one core foundation.";
+      if (!shape.cube.length) return "Add at least one box responsibility.";
+      if (!shape.sphere.length) return "Add at least one sphere growth item.";
+      const total = shape.anchors.length + shape.cube.length + shape.sphere.length;
+      if (total > 44) return "Keep the total under 44 items so mobile does not melt into soup.";
+      return "";
+    }
+
+    function renderChips(layer, items) {
+      preview[layer].replaceChildren();
+      items.forEach(item => {
+        const chip = document.createElement("span");
+        chip.className = `chip ${layer === "anchors" ? "core" : layer}`;
+        chip.textContent = item.name;
+        preview[layer].appendChild(chip);
+      });
+    }
+
+    function renderPreview() {
+      const shape = collectShape();
+      renderChips("anchors", shape.anchors);
+      renderChips("cube", shape.cube);
+      renderChips("sphere", shape.sphere);
+      errorEl.textContent = validate(shape);
+    }
+
+    async function encodeShape(shape) {
+      const json = JSON.stringify(shape);
+      let bytes = new TextEncoder().encode(json);
+
+      if ("CompressionStream" in window) {
+        const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+        bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+      }
+
+      let binary = "";
+      bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    async function generateLink() {
+      const shape = collectShape();
+      const validation = validate(shape);
+      if (validation) {
+        errorEl.textContent = validation;
+        return;
+      }
+
+      const encoded = await encodeShape(shape);
+      const url = new URL("../", window.location.href);
+      url.hash = `data=${encoded}`;
+      shareUrl.value = url.href;
+      previewLink.href = url.href;
+      output.classList.add("open");
+      errorEl.textContent = encoded.length > 1800
+        ? "This works, but it is a long link. TinyURL is recommended."
+        : "Ready.";
+    }
+
+    async function copyLink() {
+      if (!shareUrl.value) await generateLink();
+      if (!shareUrl.value) return;
+      await navigator.clipboard.writeText(shareUrl.value);
+      errorEl.textContent = "Copied.";
+    }
+
+    async function openShortener() {
+      if (!shareUrl.value) await generateLink();
+      if (!shareUrl.value) return;
+      const target = `https://tinyurl.com/create.php?url=${encodeURIComponent(shareUrl.value)}`;
+      window.open(target, "_blank", "noopener");
+    }
+
+    Object.entries(defaults).forEach(([layer, items]) => {
+      items.forEach(item => addItem(layer, item));
+    });
+
+    document.querySelectorAll("[data-add]").forEach(button => {
+      button.addEventListener("click", () => {
+        const layer = button.dataset.add;
+        const max = layer === "anchors" ? 8 : 18;
+        if (collectLayer(layer).length >= max) {
+          errorEl.textContent = `Maximum ${max} items in this section.`;
+          return;
+        }
+        addItem(layer);
+        renderPreview();
+      });
+    });
+    titleInput.addEventListener("input", renderPreview);
+    introInput.addEventListener("input", renderPreview);
+    document.getElementById("generate").addEventListener("click", generateLink);
+    document.getElementById("copy").addEventListener("click", copyLink);
+    document.getElementById("shorten").addEventListener("click", openShortener);
+    renderPreview();
+  </script>
+</body>
+</html>
