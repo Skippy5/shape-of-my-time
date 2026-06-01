@@ -120,7 +120,8 @@
     }
 
     input,
-    textarea {
+    textarea,
+    select {
       width: 100%;
       border: 1px solid rgba(255, 245, 224, 0.16);
       border-radius: 8px;
@@ -138,9 +139,15 @@
     }
 
     input:focus,
-    textarea:focus {
+    textarea:focus,
+    select:focus {
       border-color: rgba(127, 208, 255, 0.64);
       box-shadow: 0 0 0 3px rgba(127, 208, 255, 0.12);
+    }
+
+    select {
+      min-height: 43px;
+      color-scheme: dark;
     }
 
     fieldset {
@@ -163,7 +170,7 @@
 
     .item {
       display: grid;
-      grid-template-columns: minmax(130px, 0.7fr) minmax(160px, 1fr) 36px;
+      grid-template-columns: minmax(120px, 0.64fr) minmax(120px, 0.54fr) minmax(160px, 1fr) 36px;
       gap: 8px;
       align-items: start;
     }
@@ -321,6 +328,10 @@
         grid-template-columns: 1fr 36px;
       }
 
+      .item select {
+        grid-column: 1 / -1;
+      }
+
       .item textarea {
         grid-column: 1 / -1;
         min-height: 74px;
@@ -463,7 +474,11 @@
     const previewLink = document.getElementById("previewLink");
     const dataMarker = "#data=";
 
-    function addItem(layer, item = { name: "", description: "" }) {
+    function normalizeAudience(value) {
+      return ["professional", "personal", "both"].includes(value) ? value : "both";
+    }
+
+    function addItem(layer, item = { name: "", description: "", audience: "both" }) {
       const row = document.createElement("div");
       row.className = "item";
       row.dataset.layer = layer;
@@ -473,6 +488,21 @@
       name.placeholder = "Name";
       name.value = item.name || "";
       name.dataset.field = "name";
+
+      const audience = document.createElement("select");
+      audience.dataset.field = "audience";
+      audience.setAttribute("aria-label", "Context");
+      [
+        ["both", "Both"],
+        ["professional", "Professional"],
+        ["personal", "Personal"]
+      ].forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        audience.appendChild(option);
+      });
+      audience.value = normalizeAudience(item.audience);
 
       const desc = document.createElement("textarea");
       desc.maxLength = 240;
@@ -489,8 +519,9 @@
         renderPreview();
       });
 
-      row.append(name, desc, remove);
+      row.append(name, audience, desc, remove);
       row.addEventListener("input", renderPreview);
+      row.addEventListener("change", renderPreview);
       lists[layer].appendChild(row);
     }
 
@@ -498,7 +529,8 @@
       return [...lists[layer].querySelectorAll(".item")]
         .map(row => ({
           name: row.querySelector('[data-field="name"]').value.trim().slice(0, 42),
-          description: row.querySelector('[data-field="description"]').value.trim().slice(0, 240)
+          description: row.querySelector('[data-field="description"]').value.trim().slice(0, 240),
+          audience: normalizeAudience(row.querySelector('[data-field="audience"]').value)
         }))
         .filter(item => item.name);
     }
@@ -519,7 +551,8 @@
         .slice(0, limit)
         .map(item => ({
           name: String(item?.name || "").trim().slice(0, 42),
-          description: String(item?.description || "").trim().slice(0, 240)
+          description: String(item?.description || "").trim().slice(0, 240),
+          audience: normalizeAudience(item?.audience)
         }))
         .filter(item => item.name);
     }
@@ -583,7 +616,12 @@
       items.forEach(item => {
         const chip = document.createElement("span");
         chip.className = `chip ${layer === "anchors" ? "core" : layer}`;
-        chip.textContent = item.name;
+        const context = {
+          both: "Both",
+          professional: "Pro",
+          personal: "Personal"
+        }[normalizeAudience(item.audience)];
+        chip.textContent = `${item.name} · ${context}`;
         preview[layer].appendChild(chip);
       });
     }

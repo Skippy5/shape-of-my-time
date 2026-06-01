@@ -1093,6 +1093,11 @@
       ["Marriage", "The first relationship. Date nights, hard conversations, the daily small things."],
       ["Self-Improvement", "Working to become a better person"]
     ].map(([name, description]) => ({ name, description, layer: "anchor" }));
+    let anchorSets = {
+      professional: anchors,
+      personal: anchors,
+      all: anchors
+    };
 
     const professionalCube = [
       ["Service Governance", "Where consistency, accountability, and quality get built in"],
@@ -1169,15 +1174,32 @@
       }
     };
 
+    function normalizeAudience(value) {
+      return ["professional", "personal", "both"].includes(value) ? value : "both";
+    }
+
     function normalizeItems(items, layer, limit) {
       return (Array.isArray(items) ? items : [])
         .slice(0, limit)
         .map(item => ({
           name: String(item?.name || "").trim().slice(0, 42),
           description: String(item?.description || "").trim().slice(0, 240),
-          layer
+          layer,
+          audience: normalizeAudience(item?.audience)
         }))
         .filter(item => item.name);
+    }
+
+    function itemsForAudience(items, audience) {
+      return items.filter(item => item.audience === "both" || item.audience === audience);
+    }
+
+    function splitByAudience(items) {
+      return {
+        professional: itemsForAudience(items, "professional"),
+        personal: itemsForAudience(items, "personal"),
+        all: items
+      };
     }
 
     function stringSeed(value) {
@@ -1233,14 +1255,17 @@
       if (shape.anchors.length) anchors = shape.anchors;
       const cube = shape.cube.length ? shape.cube : [{ name: "Responsibilities", description: "The must-manage work.", layer: "cube" }];
       const sphere = shape.sphere.length ? shape.sphere : [{ name: "Growth", description: "What completes and stretches me.", layer: "sphere" }];
+      const anchorSplit = splitByAudience(anchors);
+      const cubeSplit = splitByAudience(cube);
+      const sphereSplit = splitByAudience(sphere);
+      anchorSets = anchorSplit;
       content = {
-        professional: { cube, sphere },
-        personal: { cube, sphere },
-        all: { cube, sphere }
+        professional: { cube: cubeSplit.professional, sphere: sphereSplit.professional },
+        personal: { cube: cubeSplit.personal, sphere: sphereSplit.personal },
+        all: { cube: cubeSplit.all, sphere: sphereSplit.all }
       };
       state.hasCustomData = true;
       state.shapeSeed = shape.seed || 0;
-      document.body.classList.add("single-mode");
     }
 
     function createRings(container, radius, latitudeCount, longitudeCount, tone, options = {}) {
@@ -1310,11 +1335,13 @@
       return el;
     }
 
-    function renderAnchors() {
-      const directions = fibonacciDirections(anchors.length, 1.7);
+    function renderAnchors(mode = state.mode) {
+      const modeAnchors = anchorSets[mode] || anchors;
+      const directions = fibonacciDirections(modeAnchors.length, 1.7);
       anchorLayer.innerHTML = "";
+      state.items = state.items.filter(entry => entry.layer !== "anchor");
 
-      anchors.forEach((item, index) => {
+      modeAnchors.forEach((item, index) => {
         const direction = directions[index];
         const anchorRadius = 56;
         const el = makeWordElement(item, "anchor");
@@ -1589,6 +1616,7 @@
       state.needsRender = true;
 
       window.setTimeout(() => {
+        renderAnchors(mode);
         populateWords(mode);
         requestAnimationFrame(() => {
           cubeLayer.classList.remove("fading");
@@ -1848,7 +1876,7 @@
       createRings(document.getElementById("sphere"), SPHERE_RADIUS, 9, 10, "sphere", {
         seed: state.shapeSeed
       });
-      renderAnchors();
+      renderAnchors(state.mode);
       populateWords(state.mode);
       updateScene();
 
