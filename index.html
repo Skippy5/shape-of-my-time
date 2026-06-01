@@ -974,9 +974,9 @@
   </section>
 
   <nav class="chrome mode-toggle" aria-label="Mode">
-    <button class="mode-btn active" type="button" data-mode="professional" aria-pressed="true">Professional</button>
+    <button class="mode-btn" type="button" data-mode="professional" aria-pressed="false">Professional</button>
     <button class="mode-btn" type="button" data-mode="personal" aria-pressed="false">Personal</button>
-    <button class="mode-btn" type="button" data-mode="all" aria-pressed="false">All</button>
+    <button class="mode-btn active" type="button" data-mode="all" aria-pressed="true">All</button>
   </nav>
 
   <nav class="chrome layer-filter" aria-label="Text layers">
@@ -1061,7 +1061,7 @@
     const SPHERE_RADIUS = 520;
 
     const state = {
-      mode: "professional",
+      mode: "all",
       rotationX: mobileQuery.matches ? -10 : -16,
       rotationY: mobileQuery.matches ? 22 : 28,
       zoom: mobileQuery.matches ? 0.38 : 0.92,
@@ -1072,7 +1072,7 @@
       visibleText: {
         anchor: true,
         cube: true,
-        sphere: !mobileQuery.matches
+        sphere: true
       },
       items: [],
       raf: 0,
@@ -1812,7 +1812,6 @@
         state.zoom = state.mobile ? 0.38 : 0.92;
         state.rotationX = state.mobile ? -10 : -16;
         state.rotationY = state.mobile ? 22 : 28;
-        if (state.mobile) state.visibleText.sphere = false;
         applyTextFilters();
       }
       syncZoomControls();
