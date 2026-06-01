@@ -233,6 +233,26 @@
       background: rgba(255, 255, 255, 0.07);
     }
 
+    .csv-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .csv-actions .secondary {
+      margin-top: 0;
+    }
+
+    .file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
     .note {
       margin: 0 0 12px;
       color: var(--muted);
@@ -340,6 +360,10 @@
         margin-top: 18px;
       }
 
+      .csv-actions {
+        grid-template-columns: 1fr;
+      }
+
       .item {
         grid-template-columns: 1fr 36px;
       }
@@ -401,6 +425,12 @@
 
       <aside class="panel share-panel">
         <p class="note">Create a shareable link, open it to preview, then use the short-link button if you want a cleaner URL for texting.</p>
+        <p class="note">For bulk editing, download the CSV, edit it, then upload it back. Columns: section, context, name, description.</p>
+        <div class="csv-actions">
+          <button id="downloadCsv" class="secondary" type="button">Download CSV</button>
+          <button id="importCsv" class="secondary" type="button">Upload CSV</button>
+        </div>
+        <input id="csvFile" class="file-input" type="file" accept=".csv,text/csv">
         <button id="generate" class="primary" type="button">Generate Share Link</button>
         <button id="copy" class="secondary" type="button">Copy Link</button>
         <button id="shorten" class="secondary" type="button">Open TinyURL</button>
@@ -491,10 +521,26 @@
     const output = document.getElementById("output");
     const shareUrl = document.getElementById("shareUrl");
     const previewLink = document.getElementById("previewLink");
+    const csvFile = document.getElementById("csvFile");
     const dataMarker = "#data=";
 
     function normalizeAudience(value) {
       return ["professional", "personal", "both"].includes(value) ? value : "both";
+    }
+
+    function normalizeLayer(value) {
+      const normalized = String(value || "").trim().toLowerCase();
+      if (["core", "anchor", "anchors", "foundation", "foundations"].includes(normalized)) return "anchors";
+      if (["box", "cube", "responsibility", "responsibilities"].includes(normalized)) return "cube";
+      if (["sphere", "growth"].includes(normalized)) return "sphere";
+      return "";
+    }
+
+    function normalizeCsvAudience(value) {
+      const normalized = String(value || "").trim().toLowerCase();
+      if (["professional", "pro", "work"].includes(normalized)) return "professional";
+      if (["personal", "home", "life"].includes(normalized)) return "personal";
+      return "both";
     }
 
     function addItem(layer, item = { name: "", description: "", audience: "both" }) {
@@ -564,6 +610,131 @@
         cube: collectLayer("cube").slice(0, 18),
         sphere: collectLayer("sphere").slice(0, 18)
       };
+    }
+
+    function escapeCsv(value) {
+      const text = String(value ?? "");
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function shapeToCsv(shape) {
+      const rows = [["section", "context", "name", "description"]];
+      [
+        ["core", shape.anchors],
+        ["box", shape.cube],
+        ["sphere", shape.sphere]
+      ].forEach(([section, items]) => {
+        items.forEach(item => {
+          rows.push([section, normalizeAudience(item.audience), item.name, item.description]);
+        });
+      });
+      return rows.map(row => row.map(escapeCsv).join(",")).join("\n");
+    }
+
+    function downloadCsv() {
+      const csv = shapeToCsv(collectShape());
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
+      link.download = "shape-of-my-time-template.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+      errorEl.textContent = "CSV downloaded.";
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let quoted = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (quoted) {
+          if (char === '"' && next === '"') {
+            field += '"';
+            i++;
+          } else if (char === '"') {
+            quoted = false;
+          } else {
+            field += char;
+          }
+        } else if (char === '"') {
+          quoted = true;
+        } else if (char === ",") {
+          row.push(field);
+          field = "";
+        } else if (char === "\n") {
+          row.push(field);
+          rows.push(row);
+          row = [];
+          field = "";
+        } else if (char !== "\r") {
+          field += char;
+        }
+      }
+
+      row.push(field);
+      rows.push(row);
+      return rows.filter(values => values.some(value => value.trim()));
+    }
+
+    function importCsvRows(rows) {
+      if (!rows.length) return 0;
+      const headers = rows[0].map(value => value.trim().toLowerCase());
+      const indexes = {
+        section: headers.indexOf("section"),
+        context: headers.indexOf("context"),
+        name: headers.indexOf("name"),
+        description: headers.indexOf("description")
+      };
+
+      if (indexes.section < 0 || indexes.name < 0) {
+        throw new Error("CSV needs at least section and name columns.");
+      }
+
+      const nextShape = { anchors: [], cube: [], sphere: [] };
+      rows.slice(1).forEach(values => {
+        const layer = normalizeLayer(values[indexes.section]);
+        if (!layer || nextShape[layer].length >= (layer === "anchors" ? 8 : 18)) return;
+        const name = String(values[indexes.name] || "").trim().slice(0, 42);
+        if (!name) return;
+        nextShape[layer].push({
+          name,
+          audience: normalizeCsvAudience(values[indexes.context]),
+          description: String(values[indexes.description] || "").trim().slice(0, 240)
+        });
+      });
+
+      const imported = nextShape.anchors.length + nextShape.cube.length + nextShape.sphere.length;
+      if (!imported) throw new Error("No usable rows found in the CSV.");
+
+      populateShape({
+        title: titleInput.value,
+        intro: introInput.value,
+        ...nextShape
+      });
+      output.classList.remove("open");
+      shareUrl.value = "";
+      previewLink.href = "../";
+      return imported;
+    }
+
+    async function importCsvFile(file) {
+      if (!file) return;
+      try {
+        const imported = importCsvRows(parseCsv(await file.text()));
+        errorEl.textContent = `Imported ${imported} rows.`;
+      } catch (error) {
+        errorEl.textContent = error.message || "Could not import CSV.";
+      } finally {
+        csvFile.value = "";
+      }
     }
 
     function normalizeItems(items, limit) {
@@ -720,6 +891,9 @@
     document.getElementById("generate").addEventListener("click", generateLink);
     document.getElementById("copy").addEventListener("click", copyLink);
     document.getElementById("shorten").addEventListener("click", openShortener);
+    document.getElementById("downloadCsv").addEventListener("click", downloadCsv);
+    document.getElementById("importCsv").addEventListener("click", () => csvFile.click());
+    csvFile.addEventListener("change", event => importCsvFile(event.target.files[0]));
 
     decodeSharedShape().then(sharedShape => {
       populateShape(sharedShape || {
