@@ -969,7 +969,7 @@
     <p>At the center is my foundation: the time and commitments that ground me. Around it, <em>the box</em> holds the must-do responsibilities I manage to succeed at work and in life. The sphere is what completes and stretches me — free time, curiosity, growth, and the pursuits that help me exceed expectations. Toggle modes to see the same foundation through different contexts.</p>
     <div class="title-actions">
       <button id="infoButton" class="utility-link info-button" type="button" aria-label="About this page" aria-expanded="false">i</button>
-      <a class="utility-link" href="./create/">Create yours</a>
+      <a id="createLink" class="utility-link" href="./create/">Create yours</a>
     </div>
   </section>
 
@@ -1040,6 +1040,7 @@
     const infoButton = document.getElementById("infoButton");
     const aboutPanel = document.getElementById("aboutPanel");
     const closeAbout = document.getElementById("closeAbout");
+    const createLink = document.getElementById("createLink");
     const zoomRange = document.getElementById("zoomRange");
     const zoomTrack = document.querySelector(".zoom-track");
     const zoomOut = document.getElementById("zoomOut");
@@ -1544,6 +1545,12 @@
       state.needsRender = true;
     }
 
+    function syncCreateLink() {
+      const isSharedShape = window.location.hash.startsWith("#data=");
+      createLink.href = isSharedShape ? `./create/${window.location.hash}` : "./create/";
+      createLink.textContent = isSharedShape ? "Edit this" : "Create yours";
+    }
+
     function toggleTextLayer(layer) {
       state.visibleText[layer] = !state.visibleText[layer];
       if (state.selected?.dataset.layer === layer && !state.visibleText[layer]) hideDetails();
@@ -1820,8 +1827,9 @@
 
     async function init() {
       applySharedShape(await decodeSharedShape());
+      syncCreateLink();
       createRings(document.getElementById("coreShell"), 76, 4, 5, "core", { skipCenterLatitude: true });
-      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 7, 4, "sphere");
+      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 8, 8, "sphere");
       renderAnchors();
       populateWords(state.mode);
       updateScene();

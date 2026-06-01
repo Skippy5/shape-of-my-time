@@ -461,6 +461,7 @@
     const output = document.getElementById("output");
     const shareUrl = document.getElementById("shareUrl");
     const previewLink = document.getElementById("previewLink");
+    const dataMarker = "#data=";
 
     function addItem(layer, item = { name: "", description: "" }) {
       const row = document.createElement("div");
@@ -511,6 +512,61 @@
         cube: collectLayer("cube").slice(0, 18),
         sphere: collectLayer("sphere").slice(0, 18)
       };
+    }
+
+    function normalizeItems(items, limit) {
+      return (Array.isArray(items) ? items : [])
+        .slice(0, limit)
+        .map(item => ({
+          name: String(item?.name || "").trim().slice(0, 42),
+          description: String(item?.description || "").trim().slice(0, 240)
+        }))
+        .filter(item => item.name);
+    }
+
+    async function decodeSharedShape() {
+      if (!window.location.hash.startsWith(dataMarker)) return null;
+
+      try {
+        const encoded = window.location.hash.slice(dataMarker.length);
+        const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+        const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="));
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        let jsonText;
+
+        if ("DecompressionStream" in window) {
+          const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+          jsonText = await new Response(stream).text();
+        } else {
+          jsonText = new TextDecoder().decode(bytes);
+        }
+
+        const shape = JSON.parse(jsonText);
+        if (!shape || shape.v !== 1) return null;
+        return {
+          title: String(shape.title || "My Shape of Time").trim().slice(0, 70),
+          intro: String(shape.intro || "").trim().slice(0, 420),
+          anchors: normalizeItems(shape.anchors, 8),
+          cube: normalizeItems(shape.cube, 18),
+          sphere: normalizeItems(shape.sphere, 18)
+        };
+      } catch (error) {
+        console.warn("Unable to load shared shape for editing", error);
+        return null;
+      }
+    }
+
+    function populateShape(shape) {
+      titleInput.value = shape.title || "The Shape of My Time";
+      introInput.value = shape.intro || "A personal map of the commitments, responsibilities, and pursuits that shape my time.";
+
+      Object.values(lists).forEach(list => list.replaceChildren());
+      ["anchors", "cube", "sphere"].forEach(layer => {
+        const items = shape[layer]?.length ? shape[layer] : defaults[layer];
+        items.forEach(item => addItem(layer, item));
+      });
+
+      renderPreview();
     }
 
     function validate(shape) {
@@ -589,10 +645,6 @@
       window.open(target, "_blank", "noopener");
     }
 
-    Object.entries(defaults).forEach(([layer, items]) => {
-      items.forEach(item => addItem(layer, item));
-    });
-
     document.querySelectorAll("[data-add]").forEach(button => {
       button.addEventListener("click", () => {
         const layer = button.dataset.add;
@@ -610,7 +662,14 @@
     document.getElementById("generate").addEventListener("click", generateLink);
     document.getElementById("copy").addEventListener("click", copyLink);
     document.getElementById("shorten").addEventListener("click", openShortener);
-    renderPreview();
+
+    decodeSharedShape().then(sharedShape => {
+      populateShape(sharedShape || {
+        title: titleInput.value,
+        intro: introInput.value,
+        ...defaults
+      });
+    });
   </script>
 </body>
 </html>
