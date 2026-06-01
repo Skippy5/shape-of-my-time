@@ -1246,8 +1246,10 @@
     function createRings(container, radius, latitudeCount, longitudeCount, tone, options = {}) {
       container.innerHTML = "";
       const seed = options.seed || 0;
-      const obliqueCount = options.obliqueCount || 0;
       const longitudeOffset = seeded(seed * 97 + radius * 0.01) * 180;
+      const axisTiltX = seed ? (seeded(seed * 503 + 1.9) - 0.5) * 12 : 0;
+      const axisTiltZ = seed ? (seeded(seed * 617 + 2.7) - 0.5) * 16 : 0;
+      container.style.transform = `rotateX(${axisTiltX}deg) rotateZ(${axisTiltZ}deg)`;
 
       for (let i = 1; i <= latitudeCount; i++) {
         const theta = (i / (latitudeCount + 1)) * Math.PI;
@@ -1266,17 +1268,6 @@
         ring.className = `ring ${tone} longitude`;
         ring.style.setProperty("--ring-r", `${radius}px`);
         ring.style.transform = `rotateY(${longitudeOffset + (180 / longitudeCount) * (i + 0.5)}deg)`;
-        container.appendChild(ring);
-      }
-
-      for (let i = 0; i < obliqueCount; i++) {
-        const ring = document.createElement("div");
-        const rx = 18 + seeded(seed * 211 + i * 3.7) * 62;
-        const ry = seeded(seed * 307 + i * 5.1) * 180;
-        const rz = (360 / obliqueCount) * i + seeded(seed * 401 + i * 7.3) * 28;
-        ring.className = `ring ${tone} oblique`;
-        ring.style.setProperty("--ring-r", `${radius}px`);
-        ring.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
         container.appendChild(ring);
       }
     }
@@ -1854,9 +1845,8 @@
       applySharedShape(await decodeSharedShape());
       syncCreateLink();
       createRings(document.getElementById("coreShell"), 76, 4, 5, "core", { skipCenterLatitude: true });
-      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 8, 8, "sphere", {
-        seed: state.shapeSeed,
-        obliqueCount: state.hasCustomData ? 6 : 4
+      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 9, 10, "sphere", {
+        seed: state.shapeSeed
       });
       renderAnchors();
       populateWords(state.mode);
