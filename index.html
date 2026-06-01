@@ -392,9 +392,24 @@
       color: rgba(255, 245, 224, 0.86);
       background: rgba(255, 255, 255, 0.055);
       text-decoration: none;
+      font: inherit;
       font-size: 13px;
       line-height: 1;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+      cursor: pointer;
+    }
+
+    .info-button {
+      justify-content: center;
+      width: 36px;
+      padding: 0;
+      border-radius: 50%;
+      color: #fff5d0;
+      background: rgba(217, 179, 90, 0.12);
+      font-weight: 800;
+      box-shadow:
+        inset 0 0 0 1px rgba(217, 179, 90, 0.22),
+        0 10px 28px rgba(0, 0, 0, 0.24);
     }
 
     .mode-toggle {
@@ -711,6 +726,27 @@
       line-height: 1.55;
     }
 
+    .about-copy {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      color: rgba(255, 245, 224, 0.76);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .about-list {
+      display: grid;
+      gap: 8px;
+      margin: 2px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .about-list strong {
+      color: #fff5d0;
+    }
+
     @media (max-width: 760px) {
       #app {
         perspective: 820px;
@@ -759,7 +795,7 @@
 
       .title h1 {
         margin-bottom: 0;
-        max-width: calc(100% - 108px);
+        max-width: calc(100% - 150px);
         font-size: 24px;
       }
 
@@ -784,6 +820,11 @@
         padding: 7px 10px;
         font-size: 12px;
         white-space: nowrap;
+      }
+
+      .info-button {
+        width: 32px;
+        padding: 0;
       }
 
       .mode-toggle {
@@ -927,6 +968,7 @@
     <h1>The Shape of My Time</h1>
     <p>At the center is my foundation: the time and commitments that ground me. Around it, <em>the box</em> holds the must-do responsibilities I manage to succeed at work and in life. The sphere is what completes and stretches me — free time, curiosity, growth, and the pursuits that help me exceed expectations. Toggle modes to see the same foundation through different contexts.</p>
     <div class="title-actions">
+      <button id="infoButton" class="utility-link info-button" type="button" aria-label="About this page" aria-expanded="false">i</button>
       <a class="utility-link" href="./create/">Create yours</a>
     </div>
   </section>
@@ -967,6 +1009,21 @@
     <p id="detailCopy" class="detail-copy"></p>
   </aside>
 
+  <aside id="aboutPanel" class="detail-panel" aria-hidden="true" aria-labelledby="aboutTitle">
+    <button id="closeAbout" class="panel-close" type="button" aria-label="Close page information">&times;</button>
+    <p class="detail-kicker">About this page</p>
+    <h2 id="aboutTitle" class="detail-title">A map of time and attention</h2>
+    <div class="about-copy">
+      <p>This page turns a life, role, or season into a shape you can explore. It is not a calendar; it is a visual map of what grounds you, what you must manage, and what helps you grow.</p>
+      <ul class="about-list">
+        <li><strong>Core</strong> is the foundation at the center.</li>
+        <li><strong>Box</strong> is the set of responsibilities that need structure and discipline.</li>
+        <li><strong>Sphere</strong> is the surrounding growth, curiosity, relationships, and pursuits that complete the picture.</li>
+      </ul>
+      <p>Drag to rotate, zoom to move closer, and tap a word to read its description. Use Create yours to make a shareable version with your own words.</p>
+    </div>
+  </aside>
+
   <script>
     const app = document.getElementById("app");
     const scene = document.getElementById("scene");
@@ -980,6 +1037,9 @@
     const detailTitle = document.getElementById("detailTitle");
     const detailCopy = document.getElementById("detailCopy");
     const closePanel = document.getElementById("closePanel");
+    const infoButton = document.getElementById("infoButton");
+    const aboutPanel = document.getElementById("aboutPanel");
+    const closeAbout = document.getElementById("closeAbout");
     const zoomRange = document.getElementById("zoomRange");
     const zoomTrack = document.querySelector(".zoom-track");
     const zoomOut = document.getElementById("zoomOut");
@@ -1517,6 +1577,7 @@
 
     function showDetails(item, el) {
       if (!state.visibleText[item.layer]) return;
+      hideAbout();
       if (state.selected) state.selected.classList.remove("active");
       state.selected = el;
       el.classList.add("active");
@@ -1541,6 +1602,27 @@
       if (state.selected) state.selected.classList.remove("active");
       state.selected = null;
       state.needsRender = true;
+    }
+
+    function showAbout() {
+      hideDetails();
+      aboutPanel.classList.add("open");
+      aboutPanel.setAttribute("aria-hidden", "false");
+      infoButton.setAttribute("aria-expanded", "true");
+    }
+
+    function hideAbout() {
+      aboutPanel.classList.remove("open");
+      aboutPanel.setAttribute("aria-hidden", "true");
+      infoButton.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleAbout() {
+      if (aboutPanel.classList.contains("open")) {
+        hideAbout();
+      } else {
+        showAbout();
+      }
     }
 
     function updateScene() {
@@ -1764,11 +1846,19 @@
       zoomOut.addEventListener("click", () => setZoom(state.zoom - zoomLimits().step));
       zoomIn.addEventListener("click", () => setZoom(state.zoom + zoomLimits().step));
       app.addEventListener("click", event => {
-        if (!event.target.closest(".word, .chrome, .detail-panel")) hideDetails();
+        if (!event.target.closest(".word, .chrome, .detail-panel")) {
+          hideDetails();
+          hideAbout();
+        }
       });
       closePanel.addEventListener("click", hideDetails);
+      infoButton.addEventListener("click", toggleAbout);
+      closeAbout.addEventListener("click", hideAbout);
       window.addEventListener("keydown", event => {
-        if (event.key === "Escape") hideDetails();
+        if (event.key === "Escape") {
+          hideDetails();
+          hideAbout();
+        }
       });
       window.addEventListener("resize", syncViewportState);
       document.addEventListener("visibilitychange", () => {
