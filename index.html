@@ -1082,7 +1082,8 @@
       paused: false,
       mobile: mobileQuery.matches,
       reducedMotion: reducedMotionQuery.matches,
-      hasCustomData: false
+      hasCustomData: false,
+      shapeSeed: 0
     };
 
     let anchors = [
@@ -1179,6 +1180,15 @@
         .filter(item => item.name);
     }
 
+    function stringSeed(value) {
+      let hash = 2166136261;
+      for (let i = 0; i < value.length; i++) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0) / 4294967295;
+    }
+
     async function decodeSharedShape() {
       const marker = "#data=";
       if (!window.location.hash.startsWith(marker)) return null;
@@ -1204,7 +1214,8 @@
           intro: String(shape.intro || "").trim().slice(0, 420),
           anchors: normalizeItems(shape.anchors, "anchor", 8),
           cube: normalizeItems(shape.cube, "cube", 18),
-          sphere: normalizeItems(shape.sphere, "sphere", 18)
+          sphere: normalizeItems(shape.sphere, "sphere", 18),
+          seed: stringSeed(jsonText)
         };
       } catch (error) {
         console.warn("Unable to load shared shape", error);
@@ -1228,11 +1239,15 @@
         all: { cube, sphere }
       };
       state.hasCustomData = true;
+      state.shapeSeed = shape.seed || 0;
       document.body.classList.add("single-mode");
     }
 
     function createRings(container, radius, latitudeCount, longitudeCount, tone, options = {}) {
       container.innerHTML = "";
+      const seed = options.seed || 0;
+      const obliqueCount = options.obliqueCount || 0;
+      const longitudeOffset = seeded(seed * 97 + radius * 0.01) * 180;
 
       for (let i = 1; i <= latitudeCount; i++) {
         const theta = (i / (latitudeCount + 1)) * Math.PI;
@@ -1250,10 +1265,20 @@
         const ring = document.createElement("div");
         ring.className = `ring ${tone} longitude`;
         ring.style.setProperty("--ring-r", `${radius}px`);
-        ring.style.transform = `rotateY(${(180 / longitudeCount) * (i + 0.5)}deg)`;
+        ring.style.transform = `rotateY(${longitudeOffset + (180 / longitudeCount) * (i + 0.5)}deg)`;
         container.appendChild(ring);
       }
 
+      for (let i = 0; i < obliqueCount; i++) {
+        const ring = document.createElement("div");
+        const rx = 18 + seeded(seed * 211 + i * 3.7) * 62;
+        const ry = seeded(seed * 307 + i * 5.1) * 180;
+        const rz = (360 / obliqueCount) * i + seeded(seed * 401 + i * 7.3) * 28;
+        ring.className = `ring ${tone} oblique`;
+        ring.style.setProperty("--ring-r", `${radius}px`);
+        ring.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+        container.appendChild(ring);
+      }
     }
 
     function fibonacciDirections(count, offset = 0) {
@@ -1829,7 +1854,10 @@
       applySharedShape(await decodeSharedShape());
       syncCreateLink();
       createRings(document.getElementById("coreShell"), 76, 4, 5, "core", { skipCenterLatitude: true });
-      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 8, 8, "sphere");
+      createRings(document.getElementById("sphere"), SPHERE_RADIUS, 8, 8, "sphere", {
+        seed: state.shapeSeed,
+        obliqueCount: state.hasCustomData ? 6 : 4
+      });
       renderAnchors();
       populateWords(state.mode);
       updateScene();
