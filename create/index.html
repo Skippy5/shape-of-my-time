@@ -150,6 +150,15 @@
       color-scheme: dark;
     }
 
+    .context-select {
+      border-color: rgba(217, 179, 90, 0.36);
+      color: #ffe9a8;
+      background:
+        linear-gradient(180deg, rgba(217, 179, 90, 0.14), rgba(5, 8, 16, 0.74)),
+        rgba(5, 8, 16, 0.72);
+      font-weight: 700;
+    }
+
     fieldset {
       min-width: 0;
       margin: 20px 0 0;
@@ -160,6 +169,13 @@
 
     legend {
       padding: 0 8px;
+    }
+
+    .section-help {
+      margin: 0 0 12px;
+      color: rgba(255, 245, 224, 0.62);
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .item-list {
@@ -363,18 +379,21 @@
 
         <fieldset data-layer="anchors">
           <legend>Core foundations</legend>
+          <p class="section-help">Use Context to choose whether each item appears in Professional, Personal, or Both.</p>
           <div class="item-list" id="anchorsList"></div>
           <button class="add" type="button" data-add="anchors">Add Core</button>
         </fieldset>
 
         <fieldset data-layer="cube">
           <legend>Box responsibilities</legend>
+          <p class="section-help">Use Context to choose whether each item appears in Professional, Personal, or Both.</p>
           <div class="item-list" id="cubeList"></div>
           <button class="add" type="button" data-add="cube">Add Box</button>
         </fieldset>
 
         <fieldset data-layer="sphere">
           <legend>Sphere growth</legend>
+          <p class="section-help">Use Context to choose whether each item appears in Professional, Personal, or Both.</p>
           <div class="item-list" id="sphereList"></div>
           <button class="add" type="button" data-add="sphere">Add Sphere</button>
         </fieldset>
@@ -490,12 +509,13 @@
       name.dataset.field = "name";
 
       const audience = document.createElement("select");
+      audience.className = "context-select";
       audience.dataset.field = "audience";
       audience.setAttribute("aria-label", "Context");
       [
-        ["both", "Both"],
-        ["professional", "Professional"],
-        ["personal", "Personal"]
+        ["both", "Context: Both"],
+        ["professional", "Context: Professional"],
+        ["personal", "Context: Personal"]
       ].forEach(([value, label]) => {
         const option = document.createElement("option");
         option.value = value;
